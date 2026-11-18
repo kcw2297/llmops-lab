@@ -1,0 +1,15 @@
+[project]
+name = "llmops-lab"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = ["llmops-core", "llmops-eval", "llmops-app"]
+
+# 모듈러 모놀리스: 멤버 = 모듈. 의존은 eval/app → llmops-core 한 방향만.
+# serving/, finetune/ 은 RunPod 컨테이너에서 실행되므로 workspace 멤버가 아니다.
+[tool.uv.workspace]
+members = ["packages/llmops-core", "eval", "app"]
+
+[tool.uv.sources]
+llmops-core = { workspace = true }
+llmops-eval = { workspace = true }
+llmops-app = { workspace = true }

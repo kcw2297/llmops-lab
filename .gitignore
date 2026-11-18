@@ -1,0 +1,16 @@
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# 모델/체크포인트/대용량 데이터
+*.safetensors
+*.bin
+*.gguf
+checkpoints/
+outputs/
+.data/
+artifacts/experiments/*/results/raw/
+.claude/settings.local.json
