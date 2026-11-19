@@ -4,22 +4,10 @@ requires-python = ">=3.13"
 
 [manifest]
 members = [
-    "llmops-app",
     "llmops-core",
     "llmops-eval",
     "llmops-lab",
 ]
-
-[[package]]
-name = "llmops-app"
-version = "0.1.0"
-source = { editable = "app" }
-dependencies = [
-    { name = "llmops-core" },
-]
-
-[package.metadata]
-requires-dist = [{ name = "llmops-core", editable = "packages/llmops-core" }]
 
 [[package]]
 name = "llmops-core"
@@ -42,14 +30,12 @@ name = "llmops-lab"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "llmops-app" },
     { name = "llmops-core" },
     { name = "llmops-eval" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "llmops-app", editable = "app" },
     { name = "llmops-core", editable = "packages/llmops-core" },
     { name = "llmops-eval", editable = "eval" },
 ]

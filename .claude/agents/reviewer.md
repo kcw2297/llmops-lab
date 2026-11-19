@@ -13,7 +13,8 @@ tools: Read, Grep, Glob, Bash
 4. **재현성**: 모델 리비전, 이미지 태그, 주요 인자, 데이터셋 버전이 기록되어 있는가?
 5. **보안**: 산출물, 코드, git 추적 파일에 키나 토큰이 없는가? (`grep -rE "hf_|sk-|rpa_"`) `.env`가 `.gitignore`에 있는가?
 6. **학습**: `06-learning-note.md`가 이번 실험의 실제 수치를 인용하는가?
-7. **구조(CLAUDE.md P1~P6)**: `grep -rn "llmops_eval" app/` 과 `grep -rn "llmops_app" eval/` 결과가 비어 있는가? 결과 파일이 코드 폴더(`eval/`, `serving/`, `finetune/`, `app/`)에 쓰이지 않았는가? 실험이 레시피 복사가 아니라 config 추가로 이루어졌는가? `app/` 외에 새 앱 폴더가 생기지 않았는가?
+7. **구조(CLAUDE.md P1~P6)**: 결과 파일이 코드 폴더(`eval/`, `serving/`, `finetune/`)에 쓰이지 않았는가? 실험이 레시피 복사가 아니라 config 추가로 이루어졌는가? llmops-lab에 앱 폴더가 생기지 않았는가?
+8. **실데이터(Public 레포)**: git 추적 파일에 실제 회사명, 계좌번호(`\d{3}-\d{6}-\d{2}-\d{3}` 같은 패턴), 사업자번호, 기획서 원본(PDF)이 없는가?
 
 ## 출력
 `05-review.md`:

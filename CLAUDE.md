@@ -26,12 +26,13 @@
 
 ## 레포 구조 원칙 (새 파일·폴더는 반드시 이 규칙을 따른다)
 - **P1 자산 4종 분리**: 코드 · 설정(`configs/`) · 데이터(`datasets/`, `.data/`) · 기록(`artifacts/`)을 섞지 않는다.
-- **P2 두 실행 세계**: Local(uv workspace: `packages/llmops-core`, `eval`, `app`)과 Remote(RunPod 컨테이너: `serving`, `finetune`). 두 세계는 OpenAI 호환 HTTP API, HF 형식 LoRA 어댑터, YAML config로만 연결한다.
-- **P3 단방향 의존**: `eval`과 `app`은 `llmops_core`만 import한다. `eval`과 `app` 사이의 import는 금지한다. 둘 다 쓰는 코드는 core로 올린다.
+- **P2 두 실행 세계**: Local(uv workspace: `packages/llmops-core`, `eval`)과 Remote(RunPod 컨테이너: `serving`, `finetune`). 두 세계는 OpenAI 호환 HTTP API, HF 형식 LoRA 어댑터, YAML config로만 연결한다.
+- **P3 단방향 의존**: `eval`은 `llmops_core`만 import한다. 에이전트 앱 레포는 이 레포의 코드를 import하지 않고 OpenAI 호환 API(`LLM_BASE_URL`)로만 서빙 모델을 쓴다.
 - **P4 실험 = 설정**: 새 실험은 `{module}/configs/*.yaml`을 추가해서 만든다. 레시피 코드는 복사하지 않는다.
 - **P5 실험 ID**: `{YYYYMMDD}-m{n}-{slug}` 형식(예: `20261120-m1-qwen3-8b-vllm`). 측정 원본과 로그는 `artifacts/experiments/{id}/results/`에만 쓴다. 코드 폴더에는 결과를 쓰지 않는다.
 - **P6 git에는 재현에 필요한 것만**: 가중치, 체크포인트, 원본 데이터는 `.data/`, RunPod 볼륨, HF Hub에 둔다.
-- **앱은 `app/` 1개만 둔다.** 프로젝트의 핵심은 서빙·운영·튜닝 경험이다. 앱은 서빙한 모델을 실제 워크로드로 검증하는 소비자 역할을 하며, 새 앱 폴더를 만들지 않고 이 하나를 확장한다.
+- **앱은 별도 Private 레포 1개(`~/Desktop/biz-automation`)만 둔다.** 이 레포(Public)에는 앱 코드를 두지 않는다. 앱은 서빙한 모델을 실제 업무 워크로드(기업은행 계좌 조회 자동화 등)로 검증하는 소비자다.
+- **실데이터 금지 (Public 레포)**: 이 레포는 Public이다. 실제 회사명·계좌번호·사업자번호·비밀번호·기획서 원본·거래내역을 커밋하지 않는다. 평가 데이터셋에 업무 데이터가 필요하면 합성하거나 가명 처리한다.
 
 ## 주요 위치
 | 목적 | 위치 |
@@ -43,16 +44,17 @@
 | 학습 로드맵 | `artifacts/learning/roadmap.md` |
 | 공유 커널 | `packages/llmops-core/src/llmops_core/` |
 | 측정 | `eval/src/llmops_eval/`, `eval/configs/`, `eval/datasets/{name}-v{n}/` |
-| 에이전트 앱 | `app/src/llmops_app/` (`prompts/`, `tools/`), `app/tests/` |
+| 에이전트 앱 (별도 Private 레포) | `~/Desktop/biz-automation/` (기획: `docs/`) |
 | 서빙 | `serving/recipes/{engine}/`, `serving/configs/{model}-{quant}-{gpu}.yaml` |
 | 파인튜닝 | `finetune/recipes/{method}/`, `finetune/configs/{model}-{method}-{dataset}.yaml`, `finetune/datasets/{name}-v{n}/`(데이터 카드와 샘플) |
 
 ## 개발 환경
 - 로컬: Python 3.13, uv workspace (`uv sync`, `uv run`, 의존성은 해당 멤버에서 `uv add --package llmops-eval <pkg>`처럼 추가)
 - 원격(RunPod 컨테이너) Python 버전은 이미지가 정한다. vLLM, 학습 라이브러리는 로컬에 설치하지 않고 컨테이너 안에서 실행한다.
-- git: 로컬 저장소만 사용한다. remote push는 사용자가 요청할 때만 한다.
+- git: remote `origin` = `kcw2297/llmops-lab` (Public). push는 사용자가 요청할 때만 한다.
 
 ## 변경 이력
 - 2026-11-18: 하네스 최초 구성 (Agent 4, Skill 8, artifacts 구조, 월 예산 ₩200,000)
 - 2026-11-18: 루트 `agents/` → `apps/` 이름 변경 (`.claude/agents/`와 혼동 방지)
 - 2026-11-18: 레포 구조 원칙 P1~P6 도입. uv workspace(core/eval/app), 앱은 `app/` 1개로 고정, 실험 ID 형식 변경, 측정 원본은 artifacts로 이동
+- 2026-11-19: 레포 분리. `app/`을 제거하고 앱은 Private `biz-automation`으로 이동. Public 레포 실데이터 금지 규칙 추가
