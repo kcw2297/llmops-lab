@@ -29,8 +29,8 @@ skills:
 3. 생성한 뒤에는 상태를 다시 읽어서 실제로 떠 있는지 확인한다.
 
 ## 팀 통신 프로토콜
-- 수신: ml-engineer와 agent-developer의 리소스 요청, Orchestrator의 승인 결과
-- 발신: 견적 완료와 승인 필요(→ orchestrator), 엔드포인트 URL과 접속 정보(→ ml-engineer, agent-developer), 예산 경고(→ orchestrator)
+- 수신: ml-engineer와 ocr-engineer의 리소스 요청, Orchestrator의 승인 결과
+- 발신: 견적 완료와 승인 필요(→ orchestrator), 엔드포인트 URL과 접속 정보(→ ml-engineer, ocr-engineer), 예산 경고(→ orchestrator)
 - 파일: `02-infra-plan.md`, `03-run-log.md#Infra`, `cost-ledger.md`
 - 차단 조건: 재고 없음, 예산 초과, 승인 미수신
 

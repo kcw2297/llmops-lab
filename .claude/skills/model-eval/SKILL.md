@@ -1,6 +1,6 @@
 ---
 name: model-eval
-description: 서빙 성능(지연, 처리량)과 모델 품질을 측정하는 매뉴얼. 부하 테스트, 양자화나 파인튜닝 전후 비교, LLM-as-judge 평가, 04-eval.md 작성 시 사용한다.
+description: 서빙 성능(문서 1장당 지연, 처리량)과 추출 품질(필드 정답률)을 측정하는 매뉴얼. 부하 테스트, 모델·양자화·파인튜닝 전후 비교, 04-eval.md 작성 시 사용한다.
 ---
 
 # model-eval
@@ -12,23 +12,25 @@ description: 서빙 성능(지연, 처리량)과 모델 품질을 측정하는 �
 | TPOT / ITL | 토큰 사이 간격 | 스트리밍 chunk 간격 |
 | output tokens/s (전체) | 시스템 처리량 | RPS × 응답 크기 |
 | p50 / p95 / p99 | 분위수 | 동일 |
+| 문서 1장 처리 시간, pages/min | 이미지 1장 요청의 전체 지연, 분당 처리 장수 | 요청 1건 지연, 처리량 |
 
 ## 성능 측정 절차
-1. 도구: `vllm bench serve`(컨테이너 안) 또는 `eval/src/llmops_eval/` 의 asyncio 스크립트(`uv run python -m llmops_eval.bench --config eval/configs/{suite}.yaml`)
-2. 고정 조건: 입력/출력 토큰 길이, 프롬프트 세트, 워밍업 요청 수
+1. 도구: `vllm bench serve`(컨테이너 안) 또는 `eval/src/ocr_eval/` 의 asyncio 스크립트(`uv run python -m ocr_eval.bench --config eval/configs/{suite}.yaml`)
+2. 고정 조건: 이미지 세트와 해상도(이미지 토큰 수), 출력 JSON 길이, 워밍업 요청 수
 3. 동시성을 1, 4, 16, 64로 올리면서 측정한다. 처리량이 포화되는 지점과 p95가 급격히 늘어나는 지점을 찾는다.
 4. 원본 결과(JSON/CSV)는 `artifacts/experiments/{id}/results/`에 저장한다. 코드 폴더에는 결과를 쓰지 않는다. 04-eval.md의 숫자는 반드시 이 파일에서 가져온다.
 
 ## 품질 측정 절차
-- 처음에는 실험 목적에 맞는 고정 프롬프트 20~50개 세트(`eval/datasets/{name}-v{n}/`)를 쓴다. 세트를 수정하면 버전을 올린다(v1 → v2). 기존 버전을 덮어쓰면 과거 실험과 비교할 수 없다.
-- 비교는 A/B로 한다(베이스 vs 파인튜닝, bf16 vs awq). 채점은 규칙 기반(정답 매칭, JSON 파싱 성공률)을 먼저 쓰고, 그다음 LLM-as-judge를 쓴다.
-- 표준 벤치마크(lm-eval-harness 등)는 M5에서 도입한다.
+- 평가 세트는 합성·가명 문서 이미지와 정답 JSON 쌍이다(`eval/datasets/{name}-v{n}/`, 만드는 법은 `ocr-extraction`). 처음에는 양식당 20~50장. 세트를 수정하면 버전을 올린다(v1 → v2). 기존 버전을 덮어쓰면 과거 실험과 비교할 수 없다.
+- 지표: **필드 정답률**(양식별·필드별), **문서 완전 일치율**, **JSON 유효율**, 금액 필드 정답률은 따로 표시한다. 채점은 정규화 후 정확 일치(규칙 기반)만 쓴다. 추출은 정답이 있으므로 LLM-as-judge를 쓰지 않는다.
+- 비교는 A/B로 한다(모델 A vs B, 베이스 vs 파인튜닝, bf16 vs awq, 해상도 낮음 vs 높음). 바꾼 변수 외 조건은 같게 둔다.
+- 공개 문서 벤치마크(OmniDocBench 등) 점수는 참고만 한다. 결정은 우리 양식 평가 세트로 한다.
 
 ## 출력 형식 (`04-eval.md`)
 ```
 ## 조건
-## 성능 표 (동시성별 TTFT p50/p95, tokens/s)
-## 품질 표
+## 성능 표 (동시성별 문서 1장 지연 p50/p95, pages/min, 이미지 토큰 수)
+## 품질 표 (양식별 필드 정답률, 문서 완전 일치율, JSON 유효율, 실패 유형)
 ## 해석 (가설 대비 결과, 왜 그런지)
 ## 원본 파일 경로
 ```

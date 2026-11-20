@@ -1,5 +1,5 @@
 [project]
-name = "llmops-core"
+name = "ocr-core"
 version = "0.1.0"
 description = "공유 커널: 설정 로더, OpenAI 호환 클라이언트, 로깅, 비용 계산"
 requires-python = ">=3.13"

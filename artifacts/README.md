@@ -14,7 +14,7 @@
 01-plan.md           ml-engineer
 02-infra-plan.md     infra-engineer   🔴 승인 게이트 A
 03-run-log.md        #Infra #Model #Agent
-04-eval.md           ml-engineer (+agent-developer)
+04-eval.md           ml-engineer (+ocr-engineer)
 05-review.md         reviewer
 06-learning-note.md  learning-note
 final-report.md      orchestrator      (이 파일이 없으면 미완료 실험)

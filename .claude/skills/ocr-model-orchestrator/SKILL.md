@@ -1,6 +1,6 @@
 ---
 name: ocr-model-orchestrator
-description: RunPod 오픈소스 LLM 실험(서빙, 부하 테스트, 양자화, LoRA/QLoRA 파인튜닝, 평가, 에이전트 개발)의 전체 진행을 맡는 입구 스킬. "모델 띄워줘", "vLLM 서빙", "파인튜닝 해보자", "평가 돌려줘", "에이전트 만들어줘" 같은 요청과 "다시 실행", "재실행", "eval만 다시", "설정만 바꿔서", "이전 결과 기반 보완", "업데이트", "로드맵 진도/다음 실험" 같은 후속 요청에 사용한다. 개념 질문만 하는 경우와 하네스와 무관한 일반 코딩에는 사용하지 않는다.
+description: RunPod 오픈소스 VLM 문서 OCR 실험(서빙, 부하 테스트, 양자화, LoRA/QLoRA 파인튜닝, 추출 평가, 앱 연결 검증)의 전체 진행을 맡는 입구 스킬. "모델 띄워줘", "vLLM 서빙", "VLM 후보 비교해줘", "파인튜닝 해보자", "추출 정확도 평가 돌려줘", "앱에 연결해서 검증해줘" 같은 요청과 "다시 실행", "재실행", "eval만 다시", "설정만 바꿔서", "이전 결과 기반 보완", "업데이트", "로드맵 진도/다음 실험" 같은 후속 요청에 사용한다. 개념 질문만 하는 경우와 하네스와 무관한 일반 코딩에는 사용하지 않는다.
 ---
 
 # ocr-model Orchestrator
@@ -16,7 +16,7 @@ description: RunPod 오픈소스 LLM 실험(서빙, 부하 테스트, 양자화,
 | 모드 | 판단 기준 | 처리 |
 |---|---|---|
 | 개념 질문 | 실행 없이 이해만 원함 | `learning-note`만 실행하고 끝 |
-| 새 실험 | 새로운 목표 | `{YYYYMMDD}-m{n}-{slug}` 폴더를 만들고 Phase 1부터 (예: `20261120-m1-qwen3-8b-vllm`) |
+| 새 실험 | 새로운 목표 | `{YYYYMMDD}-m{n}-{slug}` 폴더를 만들고 Phase 1부터 (예: `20261120-m1-vlm-bakeoff`) |
 | 부분 재실행 | "eval만", "X만 바꿔서" | 기존 폴더를 읽고, 바뀐 단계부터 다시. 기존 파일은 `*.v1.md`로 보존 |
 | 이어하기 | 이전 실험이 승인 대기나 중단 상태 | `final-report.md`가 없는 최신 폴더를 찾아 마지막 완료 단계 다음부터 |
 | 진도/추천 | "다음 뭐 해?" | roadmap과 최근 리포트를 읽고 다음 실험 1~2개 제안 |
@@ -28,7 +28,7 @@ description: RunPod 오픈소스 LLM 실험(서빙, 부하 테스트, 양자화,
 - **실행 모드 선택**
   - Agent Team 도구(`TeamCreate` 등)를 쓸 수 있으면 Agent Team으로 진행한다.
   - 쓸 수 없으면 Subagent(Agent 도구에 `subagent_type`으로 아래 agent 이름 지정)로 대체한다. 이때 중간 결과는 반드시 파일로 넘긴다.
-  - 서빙만 하는 작은 실험은 infra-engineer, ml-engineer, reviewer 3명이면 충분하다. 에이전트 실험일 때만 agent-developer를 추가한다.
+  - 서빙·부하만 보는 실험은 infra-engineer, ml-engineer, reviewer 3명이면 충분하다. 추출 정확도를 재거나 데이터셋을 만들거나 앱 연결을 검증할 때 ocr-engineer를 추가한다.
 - **Task 등록** (`TaskCreate`)
 
 | Task | 담당 | 입력 | 출력 | 의존 |
@@ -38,8 +38,8 @@ description: RunPod 오픈소스 LLM 실험(서빙, 부하 테스트, 양자화,
 | T03-review-cost | reviewer | 02 | 05-review.md (비용 섹션) | T02 |
 | 🔴 GATE-A | 사람 | 02 | 승인/거절 | T03 |
 | T04-provision | infra-engineer | 승인 | 03-run-log#Infra | GATE-A |
-| T05-run | ml-engineer / agent-developer | 엔드포인트 | 03-run-log#Model/#Agent | T04 |
-| T06-eval | ml-engineer (+agent-developer) | 03 | 04-eval.md | T05 |
+| T05-run | ml-engineer / ocr-engineer | 엔드포인트 | 03-run-log#Model/#Extraction | T04 |
+| T06-eval | ml-engineer (+ocr-engineer) | 03 | 04-eval.md | T05 |
 | T07-review | reviewer | 01~04 | 05-review.md | T06 |
 | 🔴 GATE-B | 사람 | 정리 계획 | 정리/유지 승인 | T07 |
 | T08-teardown | infra-engineer | 승인 | run-log 갱신, cost-ledger | GATE-B |

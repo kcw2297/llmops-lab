@@ -4,38 +4,38 @@ requires-python = ">=3.13"
 
 [manifest]
 members = [
-    "llmops-core",
-    "llmops-eval",
+    "ocr-core",
+    "ocr-eval",
     "ocr-model",
 ]
 
 [[package]]
-name = "llmops-core"
+name = "ocr-core"
 version = "0.1.0"
-source = { editable = "packages/llmops-core" }
+source = { editable = "packages/ocr-core" }
 
 [[package]]
-name = "llmops-eval"
+name = "ocr-eval"
 version = "0.1.0"
 source = { editable = "eval" }
 dependencies = [
-    { name = "llmops-core" },
+    { name = "ocr-core" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "llmops-core", editable = "packages/llmops-core" }]
+requires-dist = [{ name = "ocr-core", editable = "packages/ocr-core" }]
 
 [[package]]
 name = "ocr-model"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "llmops-core" },
-    { name = "llmops-eval" },
+    { name = "ocr-core" },
+    { name = "ocr-eval" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "llmops-core", editable = "packages/llmops-core" },
-    { name = "llmops-eval", editable = "eval" },
+    { name = "ocr-core", editable = "packages/ocr-core" },
+    { name = "ocr-eval", editable = "eval" },
 ]
