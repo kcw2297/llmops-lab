@@ -2,14 +2,16 @@
 
 현재 마일스톤: **M1**
 
+주제: **문서 AI(VLM으로 문서 필드 추출)**. 앱(ocr-agent 2단계)의 부가세 서류 추출을 실제 워크로드로 쓴다. 기본 모델은 Gemma 4(멀티모달), 비교 대상은 외부 VLM API와 gpt-oss-20b(텍스트 전용, 전자 PDF 텍스트 추출용)이다. 업무 실문서는 이 레포에 올리지 않고 합성·가명 데이터만 쓴다.
+
 | M | 마일스톤 | 핵심 개념 | 상태 | 실험 |
 |---|---|---|---|---|
-| M1 | 7~8B 모델을 vLLM으로 Pod에 서빙 | VRAM 산정, KV cache, 토크나이저, OpenAI 호환 API | ⬜ | |
-| M2 | Serverless 전환과 부하 테스트 | cold start, continuous batching, PagedAttention, TTFT/TPOT | ⬜ | |
+| M1 | 멀티모달 모델(Gemma 4)을 vLLM으로 Pod에 서빙, 이미지 입력 호출 | VRAM 산정, KV cache, 이미지 토큰, OpenAI 호환 API(이미지 메시지) | ⬜ | |
+| M2 | Serverless 전환과 부하 테스트 (문서 이미지 배치) | cold start, continuous batching, PagedAttention, TTFT/TPOT, 이미지 해상도와 지연 | ⬜ | |
 | M3 | 양자화 비교 (AWQ/GPTQ/FP8) | 정밀도, 품질·속도·메모리 트레이드오프 | ⬜ | |
-| M4 | LoRA/QLoRA 파인튜닝과 어댑터 서빙 | 학습 루프, loss, 과적합, 어댑터 | ⬜ | |
-| M5 | 평가 체계 | 벤치마크, LLM-as-judge, 회귀 테스트 | ⬜ | |
-| M6 | 앱 레포(`biz-automation`, 기업은행 계좌 조회 자동화)로 서빙 모델 검증 (tool calling 품질, 긴 컨텍스트 부하, 파인튜닝 전후 비교) | function calling 파서, 컨텍스트 길이와 지연, 구조화 출력 | ⬜ | |
+| M4 | 문서 양식별 LoRA 파인튜닝(이미지 → JSON)과 어댑터 서빙 | 학습 루프, loss, 과적합, 데이터 수와 정확도, 어댑터 | ⬜ | |
+| M5 | 추출 평가 체계 | 필드 정답률, 문서 완전 일치, 회귀 테스트, 합성 데이터 | ⬜ | |
+| M6 | 앱 레포(`ocr-agent` 2단계 부가세 서류 추출)로 서빙 모델 검증 (외부 API 대비 정확도, 파인튜닝 전후 비교) | 구조화 출력, 사람 확인(HITL), 정확도·비용 트레이드오프 | ⬜ | |
 | M7 | 운영 | 메트릭·관측성, 오토스케일링, 비용 최적화 | ⬜ | |
 
 ## 개념 체크리스트

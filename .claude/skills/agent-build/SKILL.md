@@ -16,13 +16,13 @@ description: 직접 서빙한 OpenAI 호환 LLM 위에 에이전트를 구현하
 3. **루프 구현**: messages → completion → tool_calls가 있으면 실행하고 결과를 append → 반복. **최대 스텝 수, 타임아웃, JSON 파싱 실패 시 재시도 1회**를 넣는다.
 4. **도구 설계**: 이름과 설명은 짧고 명확하게 쓴다. 인자는 최소한으로 둔다. 파괴적 도구에는 확인 단계를 넣는다.
 5. **관측**: 매 스텝의 입력 토큰 수, 호출한 도구, 지연 시간을 JSONL 로그로 남긴다.
-6. **시나리오 테스트**: `~/Desktop/biz-automation/tests/scenarios.yaml`에 정상, 모호, 실패 유도 케이스를 각각 3개 이상 둔다. 성공률과 평균 스텝을 측정한다.
+6. **시나리오 테스트**: `~/Desktop/ocr-agent/tests/scenarios.yaml`에 정상, 모호, 실패 유도 케이스를 각각 3개 이상 둔다. 성공률과 평균 스텝을 측정한다.
 
 ## 코드 규칙
 - Python 3.13, 앱 레포에서 `uv add openai python-dotenv`
 - 설정: `.env`의 `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL`
-- 위치: 별도 Private 레포 `~/Desktop/biz-automation` 1개만 두고 확장한다
-- 의존 규칙: llmops-lab 코드는 import하지 않는다. 서빙 모델은 `LLM_BASE_URL`로만 연결한다
+- 위치: 별도 Private 레포 `~/Desktop/ocr-agent` 1개만 두고 확장한다
+- 의존 규칙: ocr-model 코드는 import하지 않는다. 서빙 모델은 `LLM_BASE_URL`로만 연결한다
 
 ## 흔한 실패 패턴 (발견하면 learning-note에 기록)
 - tool call JSON이 깨짐(작은 모델에서 흔함), 같은 도구를 무한 반복 호출, 도구 결과를 무시하고 지어낸 답변, 컨텍스트 초과

@@ -1,9 +1,9 @@
 ---
-name: llmops-lab-orchestrator
+name: ocr-model-orchestrator
 description: RunPod 오픈소스 LLM 실험(서빙, 부하 테스트, 양자화, LoRA/QLoRA 파인튜닝, 평가, 에이전트 개발)의 전체 진행을 맡는 입구 스킬. "모델 띄워줘", "vLLM 서빙", "파인튜닝 해보자", "평가 돌려줘", "에이전트 만들어줘" 같은 요청과 "다시 실행", "재실행", "eval만 다시", "설정만 바꿔서", "이전 결과 기반 보완", "업데이트", "로드맵 진도/다음 실험" 같은 후속 요청에 사용한다. 개념 질문만 하는 경우와 하네스와 무관한 일반 코딩에는 사용하지 않는다.
 ---
 
-# llmops-lab Orchestrator
+# ocr-model Orchestrator
 
 실험 1건을 **계획 → 견적·승인 → 실행 → 평가 → 리뷰 → 정리 → 학습 노트 → 리포트**로 진행하고, 모든 단계를 `artifacts/experiments/{id}/`에 파일로 남긴다.
 
