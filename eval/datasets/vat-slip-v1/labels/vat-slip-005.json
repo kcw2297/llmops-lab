@@ -1,0 +1,12 @@
+{
+  "taxpayer_name": "파하솔루션(주)",
+  "business_reg_no": "000-00-86338",
+  "tax_item": "부가가치세",
+  "tax_period_start": "2024-07-01",
+  "tax_period_end": "2024-12-31",
+  "due_date": "2025-01-25",
+  "total_amount": 9889584280,
+  "electronic_payment_no": "0000-4296-0-7236611857",
+  "virtual_account_no": "000-1491-2024-47",
+  "tax_office": "라온세무서"
+}

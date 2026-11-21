@@ -1,0 +1,12 @@
+{
+  "taxpayer_name": "서어저유통",
+  "business_reg_no": "000-42-92089",
+  "tax_item": "부가가치세",
+  "tax_period_start": "2026-07-01",
+  "tax_period_end": "2026-09-30",
+  "due_date": "2026-10-25",
+  "total_amount": 2370056040,
+  "electronic_payment_no": "0000-6772-8-7140417670",
+  "virtual_account_no": "000-5477-5590-45",
+  "tax_office": "다온세무서"
+}

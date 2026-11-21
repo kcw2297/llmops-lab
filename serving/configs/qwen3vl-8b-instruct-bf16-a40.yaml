@@ -1,0 +1,111 @@
+# 서빙 설정: Qwen3-VL-8B-Instruct / bf16 / A40 48GB x1 / vLLM v0.32.0 (RunPod Pod)
+# 첫 사용 실험: 20261120-m1-qwen3vl-8b-vllm (M1)
+# 사용법과 RunPod 필드 매핑: serving/recipes/vllm/README.md
+# 규칙(P4): 인자를 하나라도 바꾸려면 이 파일을 고치지 말고 새 config 파일을 만든다.
+# 표기: (확인) 원문에서 읽은 값, (계산) 확인값으로 계산한 값, (추정) 측정 전 가정
+
+id: qwen3vl-8b-instruct-bf16-a40
+
+model:
+  repo: Qwen/Qwen3-VL-8B-Instruct
+  revision: 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b   # (확인) HF API, lastModified 2025-10-15. 가중치가 바뀌어도 재현되게 고정
+  license: Apache-2.0                                  # (확인) 상업 사용 가능
+  gated: false                                         # (확인) HF_TOKEN 불필요
+  architecture: Qwen3VLForConditionalGeneration        # (확인) config.json
+  weights_download_gb: 17.55                           # (확인) HF 파일 합계
+  weights_vram_gib: 16.33                              # (계산) 8,767,123,696 x 2B = 17.53GB = 16.33GiB. 기동 로그와 비교
+
+engine:
+  image: vllm/vllm-openai:v0.32.0   # 두 모델이 같은 태그를 써야 "모델만 바꾼" 비교가 된다
+  entrypoint: "vllm serve"           # 이미지 기본 ENTRYPOINT. 덮어쓰지 않는다. 아래 cmd가 그 뒤에 붙는다
+  min_cuda_version: "13.0"           # 이미지 NVIDIA_REQUIRE_CUDA=cuda>=13.0 (runpod-vllm 플러그인 문서). RunPod gpu.minCudaVersion
+
+served_model_name: qwen3vl-8b        # 클라이언트 model 값. eval/configs/m1-smoke-vat-slip.yaml의 models 키와 같아야 한다
+
+gpu:
+  type: NVIDIA A40                   # 02-infra-plan GATE-A 승인 사양
+  count: 1
+  vram_gb: 48
+
+pod:                                 # infra-engineer가 create-pod에 넣는 값 (README 매핑표 참고)
+  ports: ["8000/http"]
+  container_disk_gb: 30
+  volume_gb: 50
+  volume_mount_path: /workspace
+
+env:
+  HF_HOME: /workspace/hf                     # 가중치를 볼륨에 받는다. update-pod로 컨테이너가 리셋돼도 다시 받지 않는다
+  VLLM_CACHE_ROOT: /workspace/vllm-cache     # torch.compile 캐시도 볼륨에. 같은 모델 재기동 시 컴파일 시간 단축
+  VLLM_NO_USAGE_STATS: "1"                   # vLLM 사용 통계 전송 끄기
+  VLLM_API_KEY: ${from .env}                 # 값은 로컬 .env에만. 여기·args·로그에 적지 않는다. --api-key 인자는 쓰지 않는다(05-review)
+
+# vllm serve 인자 (exec form 토큰 목록). RunPod `cmd` 필드에 이 목록을 그대로 넣어도 되고,
+# 아래 rendered_args 문자열을 `args` 필드에 넣어도 된다. 두 형태는 같은 명령이다.
+# JSON 값 인자는 dot 표기(--arg.key value)로 써서 따옴표·공백이 하나도 없게 했다.
+# 이유: RunPod args 문자열은 "split into arguments"라고만 문서화되어 있고 따옴표 처리 규칙이 없다.
+#       따옴표가 없으면 공백 split이든 셸 split이든 결과가 같다. vLLM은 dot 표기를 JSON으로 합쳐서 읽는다
+#       (vllm/utils/argparse_utils.py, v0.32.0. 값은 json.loads로 읽어 1→int, false→bool).
+cmd:
+  - Qwen/Qwen3-VL-8B-Instruct              # 모델은 첫 위치 인자
+  - --revision
+  - 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b   # 토크나이저·processor도 같은 리비전을 쓴다(tokenizer_revision 기본값 = revision)
+  - --served-model-name
+  - qwen3vl-8b
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"                                 # RunPod 노출 포트 8000/http와 맞춘다
+  - --dtype
+  - bfloat16                               # 모델 기본 정밀도. 양자화 비교는 M3
+  - --max-model-len
+  - "8192"                                 # 이미지 2,145 + 프롬프트 + JSON 출력(max_tokens 1024)에 충분. 기본 262,144면 KV를 과하게 잡는다
+  - --gpu-memory-utilization
+  - "0.90"                                 # VRAM 90%를 vLLM이 미리 잡는다. 나머지 10%는 단편화·다른 프로세스 여유
+  - --limit-mm-per-prompt.image
+  - "1"                                    # 요청 1건에 문서 이미지 1장
+  - --limit-mm-per-prompt.video
+  - "0"                                    # 비디오 끔. 비디오 프로파일링 메모리를 아낀다 (vLLM Qwen3-VL recipe의 image-only 예시와 같은 표기)
+  - --mm-processor-kwargs.max_pixels
+  - "2621440"                              # 이미지 픽셀 상한 = 2,560 토큰 x 1,024px. 기본 16,777,216px(16,384토큰)은 max-model-len 8192를 넘는다
+
+# args 필드용 한 줄 문자열 (cmd를 공백으로 이은 것과 같다. 따옴표 없음)
+rendered_args: "Qwen/Qwen3-VL-8B-Instruct --revision 0c351dd01ed87e9c1b53cbc748cba10e6187ff3b --served-model-name qwen3vl-8b --host 0.0.0.0 --port 8000 --dtype bfloat16 --max-model-len 8192 --gpu-memory-utilization 0.90 --limit-mm-per-prompt.image 1 --limit-mm-per-prompt.video 0 --mm-processor-kwargs.max_pixels 2621440"
+
+# 기동 로그 `non-default args:`에서 vLLM이 받은 값이 이렇게 보여야 한다 (dot 표기가 합쳐진 결과)
+expected_parsed:
+  limit_mm_per_prompt: {image: 1, video: 0}
+  mm_processor_kwargs: {max_pixels: 2621440}
+
+image_budget:
+  pixel_rule: "32x32 픽셀 = 비전 토큰 1개 (patch 16 x spatial merge 2)"   # (확인) preprocessor_config.json patch_size 16, merge_size 2
+  hf_default: {shortest_edge: 65536, longest_edge: 16777216}            # (확인) preprocessor_config.json @ 위 revision
+  max_pixels: 2621440                                                    # → 이미지 1장 최대 2,560 토큰 (계산)
+  a4_150dpi_example: "1240x1754 → 1248x1760 (32 배수) → 39x55 = 2,145 토큰 (계산)"
+  over_limit_behavior: >-
+    상한을 넘는 이미지는 비율을 유지한 채 max_pixels 안으로 줄여서 처리한다(smart_resize). 거절하지 않는다.
+    이미지+텍스트 토큰이 max-model-len을 넘으면 그 요청만 400 오류("The decoder prompt (length N) is longer than
+    the maximum model length")로 거절된다. 자르지 않는다.
+
+# 클라이언트가 요청마다 넣는 값 (서버 인자가 아님)
+request_options:
+  temperature: 0                 # 재현성 우선. 모델 generation_config 기본값(temperature 0.7, top_p 0.8, top_k 20)이 서버 기본값이 되므로 반드시 명시
+  max_tokens: 1024
+  response_format: json_schema   # 구조화 출력. 서버 인자 없이 동작(v0.32.0 기본 structured output 백엔드). 기동 후 1건으로 확인
+  image: "image_url에 data:image/png;base64,... 1장"
+  do_not_send: [mm_processor_kwargs]   # 요청별 mm_processor_kwargs는 서버가 기본으로 거절한다(--trust-request-mm-kwargs 꺼짐). 해상도는 서버 설정으로만 바꾼다
+  thinking: "해당 없음 (Instruct 모델)"
+
+vram_estimate:   # 01-plan.md 계산 요약. 실측(기동 로그)과 비교해 03-run-log에 기록
+  weights_gb: 17.53            # (계산) 언어 모델 16.38 + 비전 인코더 1.15
+  kv_per_token_bytes: 147456   # (계산) 2 x 36층 x 8 KV헤드 x 128 x 2B
+  kv_per_seq_8192_gb: 1.208    # (계산)
+  overhead_gb: 3.0             # (추정)
+  kv_pool_gb: 22.67            # (추정) 48 x 0.90 - 17.53 - 3.0
+  expected_max_concurrency_x: 18.8   # (추정) 기동 로그 `Maximum concurrency for 8,192 tokens per request`와 비교
+
+# 기동 실패 시 바꿀 후보 (바꾸면 새 config 파일로 만든다)
+fallbacks:
+  - symptom: "KV cache 부족 오류 (max_model_len이 들어가지 않음)"
+    change: "--gpu-memory-utilization 0.92 또는 --max-model-len 6144"
+  - symptom: "비전 인코더 프로파일링 OOM"
+    change: "--mm-processor-kwargs.max_pixels 2097152 (2,048토큰. A4 150dpi는 약간 축소됨)"

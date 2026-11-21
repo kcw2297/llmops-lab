@@ -1,0 +1,125 @@
+# 서빙 설정: Qwen3.5-9B / bf16 / A40 48GB x1 / vLLM v0.32.0 (RunPod Pod)
+# 첫 사용 실험: 20261120-m1-qwen3vl-8b-vllm (M1, 비교 대상)
+# 사용법과 RunPod 필드 매핑: serving/recipes/vllm/README.md
+# 규칙(P4): 인자를 하나라도 바꾸려면 이 파일을 고치지 말고 새 config 파일을 만든다.
+# 표기: (확인) 원문에서 읽은 값, (계산) 확인값으로 계산한 값, (추정) 측정 전 가정
+# qwen3vl-8b-instruct-bf16-a40.yaml과 다른 곳: 모델·리비전·served name, thinking 끄기 2개 인자. 나머지는 같다.
+
+id: qwen3.5-9b-bf16-a40
+
+model:
+  repo: Qwen/Qwen3.5-9B                                # "-Instruct" 접미사 없음. 한 모델이 thinking/non-thinking을 다 하고 기본값이 thinking
+  revision: c202236235762e1c871ad0ccb60c8ee5ba337b9a   # (확인) HF API, lastModified 2026-03-02
+  license: Apache-2.0                                  # (확인)
+  gated: false                                         # (확인)
+  architecture: Qwen3_5ForConditionalGeneration        # (확인) config.json. vLLM 0.17.0 이상 필요 (v0.32.0 충족)
+  weights_download_gb: 19.33                           # (확인) HF 파일 합계 (MTP 헤드 포함)
+  weights_vram_gib: 17.53                              # (계산) MTP 제외 18.82GB = 17.53GiB. vLLM은 MTP 가중치를 로드하지 않는다(아래 notes)
+
+engine:
+  image: vllm/vllm-openai:v0.32.0
+  entrypoint: "vllm serve"
+  min_cuda_version: "13.0"
+
+served_model_name: qwen3.5-9b
+
+gpu:
+  type: NVIDIA A40
+  count: 1
+  vram_gb: 48
+
+pod:
+  ports: ["8000/http"]
+  container_disk_gb: 30
+  volume_gb: 50
+  volume_mount_path: /workspace
+
+env:
+  HF_HOME: /workspace/hf
+  VLLM_CACHE_ROOT: /workspace/vllm-cache
+  VLLM_NO_USAGE_STATS: "1"
+  VLLM_API_KEY: ${from .env}                 # 값은 로컬 .env에만. --api-key 인자는 쓰지 않는다
+
+cmd:
+  - Qwen/Qwen3.5-9B
+  - --revision
+  - c202236235762e1c871ad0ccb60c8ee5ba337b9a
+  - --served-model-name
+  - qwen3.5-9b
+  - --host
+  - 0.0.0.0
+  - --port
+  - "8000"
+  - --dtype
+  - bfloat16
+  - --max-model-len
+  - "8192"
+  - --gpu-memory-utilization
+  - "0.90"
+  - --limit-mm-per-prompt.image
+  - "1"
+  - --limit-mm-per-prompt.video
+  - "0"
+  - --mm-processor-kwargs.max_pixels
+  - "2621440"                              # Qwen3-VL과 같은 상한. Qwen3.5도 같은 processor(Qwen3VLProcessor + Qwen2VLImageProcessorFast)를 쓴다
+  - --reasoning-parser
+  - qwen3                                  # 모델 카드 권장. thinking 출력이 섞여도 content와 reasoning 필드로 분리한다
+  - --default-chat-template-kwargs.enable_thinking
+  - "false"                                # 서버 기본값으로 thinking 끄기 = '{"enable_thinking": false}'. 요청의 chat_template_kwargs가 있으면 그쪽이 우선
+
+rendered_args: "Qwen/Qwen3.5-9B --revision c202236235762e1c871ad0ccb60c8ee5ba337b9a --served-model-name qwen3.5-9b --host 0.0.0.0 --port 8000 --dtype bfloat16 --max-model-len 8192 --gpu-memory-utilization 0.90 --limit-mm-per-prompt.image 1 --limit-mm-per-prompt.video 0 --mm-processor-kwargs.max_pixels 2621440 --reasoning-parser qwen3 --default-chat-template-kwargs.enable_thinking false"
+
+expected_parsed:
+  limit_mm_per_prompt: {image: 1, video: 0}
+  mm_processor_kwargs: {max_pixels: 2621440}
+  default_chat_template_kwargs: {enable_thinking: false}
+  reasoning_parser: qwen3
+
+image_budget:
+  pixel_rule: "32x32 픽셀 = 비전 토큰 1개 (patch 16 x spatial merge 2)"   # (확인) preprocessor_config.json
+  hf_default: {shortest_edge: 65536, longest_edge: 16777216}            # (확인) preprocessor_config.json @ 위 revision (Qwen3-VL과 같은 값)
+  max_pixels: 2621440
+  a4_150dpi_example: "1240x1754 → 39x55 = 2,145 토큰 (계산)"
+  over_limit_behavior: "qwen3vl-8b-instruct-bf16-a40.yaml과 같다 (Qwen3_5ProcessingInfo가 Qwen3VLProcessingInfo를 상속)"
+
+request_options:
+  temperature: 0                 # 이 리비전에는 generation_config.json이 없어 서버 기본 샘플링은 vLLM 기본값이다. 요청에서 반드시 명시
+  max_tokens: 1024
+  response_format: json_schema
+  image: "image_url에 data:image/png;base64,... 1장"
+  do_not_send: [mm_processor_kwargs]
+  thinking_off:
+    server: "--default-chat-template-kwargs.enable_thinking false (위 cmd)"
+    per_request: 'extra_body: {"chat_template_kwargs": {"enable_thinking": false}}'   # 모델 카드 예시와 같은 형태. eval config는 이중으로 보낸다
+    how_it_works: >-
+      chat template이 enable_thinking=false면 assistant 앞에 빈 '<think>\n\n</think>\n\n'을 넣는다(tokenizer_config.json 확인).
+      구조화 출력은 프롬프트 안의 '</think>'를 보고 "추론 끝남"으로 판단해 첫 토큰부터 JSON schema를 적용한다
+      (vllm/v1/structured_output/__init__.py가 prompt_token_ids로 is_reasoning_end 검사).
+    check_after_boot: "응답 message.reasoning이 비어 있거나 null이고 content가 JSON으로 시작하는지 1건 확인"
+
+notes:
+  linear_attention_state_dtype: >-
+    (확인) vLLM은 config.json의 text_config.mamba_ssm_dtype='float32'를 읽어 mamba_ssm_cache_dtype을 float32로 바꾼다
+    (vllm/model_executor/models/config.py Qwen3_5ForConditionalGenerationConfig). conv 상태는 모델 dtype(bf16).
+    → 시퀀스당 재귀 상태 0.050GB, conv 상태 0.001GB로 01-plan 계산이 맞다.
+  mtp: >-
+    (확인) config.json mtp_num_hidden_layers=1이지만 vLLM은 가중치 매퍼에서 'mtp.' 접두사를 버린다
+    (Qwen3_5ForConditionalGeneration.hf_to_vllm_mapper {"mtp.": None}). --speculative-config를 주지 않으면 로드하지 않는다.
+    다운로드는 한다(19.33GB 전체).
+  known_pitfall: "CUDA graph 캡처 크기가 mamba 캐시보다 크면 기동 실패 → --max-cudagraph-capture-size를 기본 512에서 낮춘 새 config (vLLM Qwen3.5 recipe)"
+
+vram_estimate:
+  weights_gb: 18.82            # (계산) MTP 제외. 언어 모델 17.91 + 비전 0.91
+  full_attn_kv_per_token_bytes: 32768   # (계산) 2 x 8층 x 4 KV헤드 x 256 x 2B
+  linear_state_per_seq_gb: 0.052        # (계산) 재귀 0.050(fp32, 확인) + conv 0.001
+  per_seq_8192_gb: 0.320       # (계산)
+  overhead_gb: 3.0             # (추정)
+  expected_max_concurrency_x: 66   # (추정) (43.2 - 18.82 - 3.0) / 0.320. 하이브리드 KV 할당기 페이지 정렬 때문에 실제와 다를 수 있다
+
+fallbacks:
+  - symptom: "state/mamba cache 크기 오류"
+    change: "--max-num-seqs 64"
+  - symptom: "CUDA graph 캡처 중 실패"
+    change: "--max-cudagraph-capture-size 256"
+  - symptom: "응답에 thinking 텍스트가 섞임"
+    change: "서버 인자 문제가 아니면 요청 chat_template_kwargs 확인. 그래도 섞이면 run-log에 원문 기록 후 판단"

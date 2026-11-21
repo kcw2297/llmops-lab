@@ -1,0 +1,12 @@
+{
+  "taxpayer_name": "가나다상사",
+  "business_reg_no": "000-98-64326",
+  "tax_item": "부가가치세",
+  "tax_period_start": "2026-01-01",
+  "tax_period_end": "2026-06-30",
+  "due_date": "2026-07-25",
+  "total_amount": 681210,
+  "electronic_payment_no": "0000-1622-4-3755298414",
+  "virtual_account_no": "000-0159-6556-55",
+  "tax_office": "나래세무서"
+}

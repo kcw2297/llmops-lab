@@ -1,0 +1,49 @@
+# M1 스모크: 합성 부가세 납부서 8장 → 필드 JSON 추출, 모델 2개 대조
+# 실행: uv run python -m ocr_eval.m1_smoke --config eval/configs/m1-smoke-vat-slip.yaml --model qwen3vl-8b
+# 접속 정보(LLM_BASE_URL, LLM_API_KEY)는 .env에서만 읽는다. 여기에 URL·키를 적지 않는다.
+
+experiment_id: 20261120-m1-qwen3vl-8b-vllm
+dataset: eval/datasets/vat-slip-v1          # images/, labels/, schema.json
+results_root: artifacts/experiments/20261120-m1-qwen3vl-8b-vllm/results
+
+request:
+  temperature: 0
+  max_tokens: 1024
+  timeout_s: 180          # 첫 요청은 CUDA graph·비전 인코더 워밍업 때문에 느릴 수 있다
+  image_mime: image/png
+  response_format_name: vat_slip
+  strict: true
+  # guided decoding 백엔드가 JSON Schema 키워드를 거부하면 여기에 넣어 서버로 보내는 스키마에서만 뺀다.
+  # (로컬 검증은 항상 원본 schema.json 전체로 한다.) 예: [pattern]
+  schema_drop_keywords: []
+
+run:
+  warmup: 1               # 측정 제외 워밍업 요청 수 (첫 이미지를 한 번 더 보냄). --limit을 주면 기본 0
+  concurrency: 1          # M1은 순차 호출만
+
+# served-model-name → 모델별 추가 요청 옵션(extra_body). --model 값으로 고른다.
+models:
+  qwen3vl-8b:
+    hf_repo: Qwen/Qwen3-VL-8B-Instruct
+    extra_body: {}
+  qwen3.5-9b:
+    hf_repo: Qwen/Qwen3.5-9B
+    # 서버 기본값(--default-chat-template-kwargs)으로도 끄지만, 요청에서도 명시해 이중으로 막는다.
+    extra_body:
+      chat_template_kwargs:
+        enable_thinking: false
+
+prompt:
+  system: null            # 시스템 프롬프트 없음. 지시는 user 메시지 텍스트 1개로만 준다
+  user: |
+    이 이미지는 부가가치세 납부서입니다. 문서에 인쇄된 값만 읽어서 JSON으로 답하세요.
+    - taxpayer_name: 납부자 상호 (괄호·(주) 포함 문서 표기 그대로)
+    - business_reg_no: 사업자등록번호 (문서 표기 그대로)
+    - tax_item: 세목
+    - tax_period_start, tax_period_end: 과세기간 시작일·종료일
+    - due_date: 납부기한
+    - total_amount: 납부할 세액 합계 (원, 콤마 없는 정수)
+    - electronic_payment_no: 전자납부번호 (문서 표기 그대로)
+    - virtual_account_no: 납부계좌(가상계좌) 번호 (은행명 제외, 문서 표기 그대로)
+    - tax_office: 관할세무서명
+    규칙: 날짜는 YYYY-MM-DD. 문서에 없거나 비어 있는 값은 null. 값을 계산하거나 추측하지 마세요.

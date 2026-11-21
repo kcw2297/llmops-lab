@@ -1,0 +1,94 @@
+{
+  "dataset": "vat-slip-v1",
+  "seed": 20261120,
+  "size": [
+    1240,
+    1754
+  ],
+  "dpi": 150,
+  "font": "AppleSDGothicNeo.ttc",
+  "pillow": "13.0.0",
+  "schema_sha256": "752b5ab1c87caccb57f119dd63ceb52aa1c7e01a9b6555be349af7c370a31f27",
+  "docs": [
+    {
+      "doc_id": "vat-slip-001",
+      "image": "images/vat-slip-001.png",
+      "label": "labels/vat-slip-001.json",
+      "image_sha256": "69a0e959768ce1a3ccc5dcc3a6fcbe0577d7f1e783c55970d87c6aa8752c1e80",
+      "label_sha256": "96399723a20fa340e98915b9397e70cfeda0f956d17443874d185d3fe8016520",
+      "amount_digits": 6,
+      "date_style": "dot_space",
+      "virtual_account": "show"
+    },
+    {
+      "doc_id": "vat-slip-002",
+      "image": "images/vat-slip-002.png",
+      "label": "labels/vat-slip-002.json",
+      "image_sha256": "b9c7cc3ae155738b0c9f662b076a6e87d68896e9cc803db18cd1f463ebbb1080",
+      "label_sha256": "d96fa9f17ec27aee58e9eacf92ef30714660bd8cc7bdadd19e74692dee58dd13",
+      "amount_digits": 7,
+      "date_style": "korean",
+      "virtual_account": "show"
+    },
+    {
+      "doc_id": "vat-slip-003",
+      "image": "images/vat-slip-003.png",
+      "label": "labels/vat-slip-003.json",
+      "image_sha256": "a0ff67e8763aa541e7e1d505e408a361b396ade46d55accd1c68d61f678ad0af",
+      "label_sha256": "3bf4832a39efb551fba731ca55e3adeba834ebbfa71cd44bbed9a5a4bae845f4",
+      "amount_digits": 8,
+      "date_style": "iso",
+      "virtual_account": "omit"
+    },
+    {
+      "doc_id": "vat-slip-004",
+      "image": "images/vat-slip-004.png",
+      "label": "labels/vat-slip-004.json",
+      "image_sha256": "7ce1a9989d3917dff3b46ac4961e060b8c9fc3aad1ab6877082feb106004ee8e",
+      "label_sha256": "042a1532b00c20384ba288be68cb8e86c198644da30cf77146c471898382f251",
+      "amount_digits": 9,
+      "date_style": "dot",
+      "virtual_account": "show"
+    },
+    {
+      "doc_id": "vat-slip-005",
+      "image": "images/vat-slip-005.png",
+      "label": "labels/vat-slip-005.json",
+      "image_sha256": "eecf37e9aba066152677741c8ecc08415dade96726e0bd5b7e6f91b8c99739fe",
+      "label_sha256": "499a5e26377c064b1862d07a4fc3e946f54b97d710efdefd9a0312d9547aa0a8",
+      "amount_digits": 10,
+      "date_style": "korean_pad",
+      "virtual_account": "show"
+    },
+    {
+      "doc_id": "vat-slip-006",
+      "image": "images/vat-slip-006.png",
+      "label": "labels/vat-slip-006.json",
+      "image_sha256": "7705bd3a77b305641cf09bb8500f27a0fa40bfee18e65a2f803804d5a8369c14",
+      "label_sha256": "6923ffa2559cd3f45a3975e3292bd5a8e3e5ccc4e84221db91ffd672d6e58172",
+      "amount_digits": 6,
+      "date_style": "slash",
+      "virtual_account": "show"
+    },
+    {
+      "doc_id": "vat-slip-007",
+      "image": "images/vat-slip-007.png",
+      "label": "labels/vat-slip-007.json",
+      "image_sha256": "924137c899870409bd0d49c7abe9b2a54b513905b234b9e8e7f55ad60f9679c2",
+      "label_sha256": "328ea24a98ad45cf1598cc11f6074d64c64502876e88aaa3961404ec879395dc",
+      "amount_digits": 8,
+      "date_style": "dot_space",
+      "virtual_account": "blank"
+    },
+    {
+      "doc_id": "vat-slip-008",
+      "image": "images/vat-slip-008.png",
+      "label": "labels/vat-slip-008.json",
+      "image_sha256": "4ad44051d7d69e4088aad586b491358246119bd579eb10dde9a3d954885275d8",
+      "label_sha256": "0005fd0f074921edeb3da3f6c469f958344885d15ffcc8e16f70606011846edf",
+      "amount_digits": 10,
+      "date_style": "iso",
+      "virtual_account": "show"
+    }
+  ]
+}

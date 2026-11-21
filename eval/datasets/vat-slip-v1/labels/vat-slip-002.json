@@ -1,0 +1,12 @@
+{
+  "taxpayer_name": "(주)라마바테크",
+  "business_reg_no": "000-67-06509",
+  "tax_item": "부가가치세",
+  "tax_period_start": "2025-07-01",
+  "tax_period_end": "2025-12-31",
+  "due_date": "2026-01-25",
+  "total_amount": 3415670,
+  "electronic_payment_no": "0000 8857 7 7646509708",
+  "virtual_account_no": "000-4139-2125-45",
+  "tax_office": "나래세무서"
+}

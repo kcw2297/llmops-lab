@@ -1,0 +1,12 @@
+{
+  "taxpayer_name": "주식회사 사아자물산",
+  "business_reg_no": "0007404120",
+  "tax_item": "부가가치세",
+  "tax_period_start": "2026-01-01",
+  "tax_period_end": "2026-03-31",
+  "due_date": "2026-04-25",
+  "total_amount": 17773970,
+  "electronic_payment_no": "0000-1046-3-9405802105",
+  "virtual_account_no": null,
+  "tax_office": "다온세무서"
+}

@@ -1,0 +1,12 @@
+{
+  "taxpayer_name": "차카타푸드",
+  "business_reg_no": "000-70-18115",
+  "tax_item": "부가가치세",
+  "tax_period_start": "2025-07-01",
+  "tax_period_end": "2025-09-30",
+  "due_date": "2025-10-25",
+  "total_amount": 883836670,
+  "electronic_payment_no": "0000673520957648547",
+  "virtual_account_no": "000-0866-4623-40",
+  "tax_office": "나래세무서"
+}

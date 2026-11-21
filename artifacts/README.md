@@ -13,7 +13,7 @@
 00-input.md          요청 원문, 모드
 01-plan.md           ml-engineer
 02-infra-plan.md     infra-engineer   🔴 승인 게이트 A
-03-run-log.md        #Infra #Model #Agent
+03-run-log.md        #Infra #Model #Extraction
 04-eval.md           ml-engineer (+ocr-engineer)
 05-review.md         reviewer
 06-learning-note.md  learning-note
